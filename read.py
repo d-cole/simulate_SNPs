@@ -16,36 +16,68 @@ class read():
         self.read_id = sline[0]
         self.flag = sline[1]
         self.chrom = sline[2]
-        self.pos = sline[3]
+        self.pos = int(sline[3])
         self.MAPQ = sline[4]
         self.CIGAR = sline[5]
         self.mate_chrom = sline[6]
         self.mate_pos = sline[7]
         self.template_len = sline[8]
         self.seq = sline[9]
-        self.base_qual = sline[1]
+        self.base_qual = sline[10]
         ##Flags & duplicates?
 
-        if len(seq) != int(template_len):
-            pass
-        
+        if len(self.seq) != 100:
+            print "Seq len:", len(self.seq), "\n", "Temp len:", self.template_len, \
+                "MQ: ", self.MAPQ
+    
 #        self.base_range = range(int(self.pos), int(self.pos) + len(self.template_len))
-        self.range_end = int(self.pos) + len(self.template_len)
+        self.range_end = self.pos + len(self.seq)
      
     
     def get_base_at_pos(self, pos):
+        """Gets base pair at given position.
+
+        Args:
+            pos: Integer bp position on a chromosome
+
+        Returns:
+            Single character representing base pair
+
+        Raises:
+            ValueError if specified position is not covered by this read
         """
-        *Check tensorflow documentation
-        *throw exception
-        """
-        if not (self.pos <= pos <= self.range_end):
-            #Raise exception & return
-            pass
-        #! 1 or 0 base of pos and seq array
-        pass
-        
-        
-            
+        if not ((int(self.pos) <= pos) and (pos <= self.range_end)):
+            print self.pos
+            print pos
+            print self.range_end
+            raise ValueError("Read does not cover specified position")
+
+        base_idx = pos - self.pos ##Dist of focal base from start of read
+        return self.seq[base_idx]
+
+    def get_base_qual_at_pos(self, pos):
+       """Gets base pair quality of a base at given position.
+
+       Args:
+           pos: Integer bp position on a chromosome
+
+       Returns:
+           Single character representing base pair quality
+
+       Raises:
+           ValueError if specified position is not covered by this read
+       """
+       if not ((int(self.pos) <= pos) and (pos <= self.range_end)):
+           print self.pos
+           print pos
+           print self.range_end
+           raise ValueError("Read does not cover specified position")
+
+       base_idx = pos - self.pos ##Dist of focal base from start of read
+       return ord(self.base_qual[base_idx]) - 33
+
+  
+           
 
 
 
