@@ -32,7 +32,11 @@ class read():
     
 #        self.base_range = range(int(self.pos), int(self.pos) + len(self.template_len))
         self.range_end = self.pos + len(self.seq)
-    
+
+    def get_base_idx(self, pos):
+        """
+        """    
+        return (int(pos) - int(self.pos))
  
     def get_base_at_pos(self, pos):
         """Gets base pair at given position.
@@ -46,13 +50,15 @@ class read():
         Raises:
             ValueError if specified position is not covered by this read
         """
-        if not ((int(self.pos) <= pos) and (pos <= self.range_end)):
+        if not ((int(self.pos) <= pos) and (int(pos) <= self.range_end)):
+            print "Err"
+            print self.read_id
             print self.pos
             print pos
             print self.range_end
             raise ValueError("Read does not cover specified position")
 
-        base_idx = pos - self.pos ##Dist of focal base from start of read
+        base_idx = int(pos) - int(self.pos) ##Dist of focal base from start of read
         return self.seq[base_idx]
 
 
