@@ -1,6 +1,4 @@
-"""generate_sites.py
-
-"""
+import sys
 from random import randint
 
 if __name__ == "__main__":
@@ -23,11 +21,12 @@ if __name__ == "__main__":
 
     out_file = open(out_file_loc,"w")
     chroms = chrom_sizes.keys()
+
     for i in range(0, num_random):
         rand_sample = samples[randint(0,len(samples) - 1)] 
         rand_chrom = chroms[randint(0,len(chroms) - 1)]
-        rand_pos = randint(0,chroms[rand_chrom])
-        out_str = rand_sample + '\t' + rand_chrom + '\t' + rand_pos + '\n'
+        rand_pos = randint(0,chrom_sizes[rand_chrom])
+        out_str = rand_sample + '\t' + rand_chrom + '\t' + str(rand_pos) + '\n'
         out_file.write(out_str)
 
     out_file.close()

@@ -32,8 +32,8 @@ class read():
     
 #        self.base_range = range(int(self.pos), int(self.pos) + len(self.template_len))
         self.range_end = self.pos + len(self.seq)
-     
     
+ 
     def get_base_at_pos(self, pos):
         """Gets base pair at given position.
 
@@ -55,6 +55,7 @@ class read():
         base_idx = pos - self.pos ##Dist of focal base from start of read
         return self.seq[base_idx]
 
+
     def get_base_qual_at_pos(self, pos):
        """Gets base pair quality of a base at given position.
 
@@ -62,7 +63,7 @@ class read():
            pos: Integer bp position on a chromosome
 
        Returns:
-           Single character representing base pair quality
+           Int representing base pair quality. ord(base_str) - 33
 
        Raises:
            ValueError if specified position is not covered by this read
