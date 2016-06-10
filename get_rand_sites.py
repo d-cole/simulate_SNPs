@@ -18,10 +18,12 @@ if __name__ == "__main__":
         for line in f:
             sline = line.split("\t")
             chrom_sizes[sline[0]] = int(sline[1])
+    chrom_sizes.pop("mitochondrion", None)
+    chrom_sizes.pop("choloroplast", None)
+
 
     out_file = open(out_file_loc,"w")
     chroms = chrom_sizes.keys()
-
     for i in range(0, num_random):
         rand_sample = samples[randint(0,len(samples) - 1)] 
         rand_chrom = chroms[randint(0,len(chroms) - 1)]

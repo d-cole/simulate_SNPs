@@ -67,8 +67,10 @@ if __name__ == "__main__":
             chrom = sline[1]
             pos = sline[2]
 
+            #Get .bam path
             glob_str = glob.glob("/data/maggie.bartkowska/spirodela_ma/all_bam/realigned/*" + sample + "*.bam")[0]
 
+            #samtools comm for getting reads at this site
             samtools_comm = "samtools view " + glob_str + " " + \
                 chrom + ":" + pos + "-" + pos
 
@@ -80,9 +82,20 @@ if __name__ == "__main__":
             #Convert to sam lines to read objects
             reads = [read(y) for y in read_strs]
 
-            #Randomly choose reads to mutate. Number to mutate 
-            reads_to_mutate = get_reads_to_mut(reads)
+            bad_reads = []
+            for t_read in reads:
+                print t_read.read_id
+                if not t_read.read_maps_pos(pos):
+                    reads.remove(t_read)
+                    bad_reads.append(t_read) 
 
+            print bad_reads
+            print reads
+
+            #Randomly choose reads to mutate. Number to mutate chosen from binomial dist.
+            reads_to_mutate = get_reads_to_mut(reads)
+        
+            #print len(reads_to_mutate)
             #Pick random new base
             bases = ["A","T","C","G"]
             mutant_base = bases[randint(0, len(bases) - 1)]

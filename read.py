@@ -36,7 +36,11 @@ class read():
     def get_base_idx(self, pos):
         """
         """    
-        return (int(pos) - int(self.pos))
+        return (int(pos) - int(self.pos)) - 1
+
+    def read_maps_pos(self,pos):
+        return ((int(self.pos) <= pos) and (int(pos) <= self.range_end))
+
  
     def get_base_at_pos(self, pos):
         """Gets base pair at given position.
@@ -52,13 +56,24 @@ class read():
         """
         if not ((int(self.pos) <= pos) and (int(pos) <= self.range_end)):
             print "Err"
-            print self.read_id
-            print self.pos
-            print pos
-            print self.range_end
+            print self.raw_str
+            print "read id",self.read_id
+            print "pos", self.pos
+            print "given pos", pos
+            print "Range end", self.range_end
             raise ValueError("Read does not cover specified position")
 
-        base_idx = int(pos) - int(self.pos) ##Dist of focal base from start of read
+        base_idx = self.get_base_idx(pos)
+        try:
+            base = self.seq[base_idx]
+        except:
+            print "Base index fail"
+            print "target pos", pos
+            print "Start pos", self.pos
+            print self.raw_str
+            print base_idx
+            print len(self.seq)
+
         return self.seq[base_idx]
 
 
@@ -80,7 +95,7 @@ class read():
            print self.range_end
            raise ValueError("Read does not cover specified position")
 
-       base_idx = pos - self.pos ##Dist of focal base from start of read
+       base_idx = self.get_base_idx(pos)
        return ord(self.base_qual[base_idx]) - 33
 
   
