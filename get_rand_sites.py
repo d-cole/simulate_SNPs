@@ -18,9 +18,9 @@ if __name__ == "__main__":
         for line in f:
             sline = line.split("\t")
             chrom_sizes[sline[0]] = int(sline[1])
+
     chrom_sizes.pop("mitochondrion", None)
     chrom_sizes.pop("choloroplast", None)
-
 
     out_file = open(out_file_loc,"w")
     chroms = chrom_sizes.keys()
