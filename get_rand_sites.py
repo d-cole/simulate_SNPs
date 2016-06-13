@@ -19,9 +19,12 @@ if __name__ == "__main__":
             sline = line.split("\t")
             chrom_sizes[sline[0]] = int(sline[1])
 
+    #Remove chromosomes excluded from analysis
+    chrom_sizes.pop("pseudo0", None)
     chrom_sizes.pop("mitochondrion", None)
     chrom_sizes.pop("choloroplast", None)
 
+    #Write out random sample, chrom and pos to out_file
     out_file = open(out_file_loc,"w")
     chroms = chrom_sizes.keys()
     for i in range(0, num_random):
