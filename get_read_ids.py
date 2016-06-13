@@ -90,12 +90,12 @@ if __name__ == "__main__":
                     reads.remove(t_read)
                     bad_reads.append(t_read) 
 
-            print bad_reads
-            print reads
-
+            print "Site: ", line
+            print "# bad reads:", len(bad_reads)
+            
             #Randomly choose reads to mutate. Number to mutate chosen from binomial dist.
             reads_to_mutate = get_reads_to_mut(reads)
-        
+            print "# reads mutating:", len(reads_to_mutate) 
             #print len(reads_to_mutate)
             #Pick random new base
             bases = ["A","T","C","G"]
