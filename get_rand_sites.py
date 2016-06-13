@@ -22,7 +22,7 @@ if __name__ == "__main__":
     #Remove chromosomes excluded from analysis
     chrom_sizes.pop("pseudo0", None)
     chrom_sizes.pop("mitochondrion", None)
-    chrom_sizes.pop("choloroplast", None)
+    chrom_sizes.pop("chloroplast", None)
 
     #Write out random sample, chrom and pos to out_file
     out_file = open(out_file_loc,"w")
