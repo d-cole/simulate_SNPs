@@ -28,7 +28,7 @@ def get_reads_to_mut(reads):
 
 
 def get_mut_strings(reads, base_pos, mutant_base):
-    """
+    """Generates strings representing sites to mutate
     
     Args:
         reads: List of read objects to convert to mutant info strings
@@ -53,6 +53,8 @@ if __name__ == "__main__":
     """
     Sample\tChrom\tbase_pos\n --> Sample\tChrom\tbase_pos\tRead_id\tbase_idx\told_base\tnew_base\n 
 
+    For every site in file_in_loc, picks a random number of randomly chosen reads to mutate and writes their info to out_file.
+
     """
     file_in_loc = sys.argv[1]
     out_file_loc = sys.argv[2]
@@ -76,7 +78,7 @@ if __name__ == "__main__":
 
             #Get reads covering specified site using samtools view
             read_strs = check_output(samtools_comm, shell=True).split('\n')
-            #Remove null string "" from final '\n'
+            #Remove null string "" from after final'\n'
             read_strs.remove("")
 
             #Convert to sam lines to read objects
@@ -84,7 +86,6 @@ if __name__ == "__main__":
 
             bad_reads = []
             for t_read in reads:
-                print t_read.read_id
                 if not t_read.read_maps_pos(pos):
                     reads.remove(t_read)
                     bad_reads.append(t_read) 
