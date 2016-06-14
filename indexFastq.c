@@ -79,6 +79,9 @@ int main(int argc, char **argv){
         //WRITE out read id and byte offset to out_fp
         fprintf(out_fp,"%s\t%lld\n", seq_id, entry_pos);
 
+        //Reset seq_id pointer back to start of buffer
+        seq_id = seq_id - TRUNC_HEAD_SIZE;
+
         //in_fp currently past read id line in current entry, move in_fp to next entry
         fseek(in_fp, entry_bytes - id_bytes, SEEK_CUR);
 
