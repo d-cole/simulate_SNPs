@@ -1,54 +1,43 @@
+/*indexFastq creates a file of the format <read id>\t<byte offset> for every read in a given .fastq file
+* The Fastq Index file will be ~11% of the size of the given .fastq file.
+*
+* Example id:  @DD63XKN1:432:C7RRYACXX:1:1101:1145:1061 1:N:0:GCCAATA
+* Truncated id: C7RRYACXX:1:1101:1145:1061 
+*/
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SEQ_BYTES 259
-#define ID_LEN 55
-// 55 (header line), 100 (seq), 1 ('+'), 100 (base qual), 3 (3 x '\n')
-// Not sure if header line will be constant across all samples
-// @DD63XKN1:432:C7RRYACXX:1:1101:1145:1061 1:N:0:GCCAATA
-// @DD63XKN1: instrument ID
-// 432: run number on instrument
-// C7RRYACXX: flowcell ID
-// 1: line number
-// 1101: tile number
-// 1145: X coord of cluster
-// 1061 Y coord of cluster
-// 1: Read number 1
-// N: Is the read filtered (No)
-// 0: Control number
-// GCCAATA Index sequence
-
-// Use flowcellID:LineNumber:tileNumber:Xcoord:Ycoord as unique read IDs
-
-char ** get_seq_id(FILE *fp){
-    /*
-    *
-    */
-    char *seq_id = (char *)malloc((sizeof(char) * ID_LEN + 1));
-    fread(seq_id, 1, ID_LEN, fp);
-    seq_id[ID_LEN] = '\0';
-
-    return seq_id;
-}
+#define ENTRY_BYTES 259
+#define ID_LEN 27
+#define _FILE_OFFSET_BITS 64
 
 int main(int argc, char **argv){
-
     char *fastq_in = argv[1];
+    char *fastq_index_out = argv[2];
 
-    FILE *fp;
-    fp = fopen(fastq_in, "r");
+    FILE *in_fp, *out_fp;
+    in_fp = fopen(fastq_in, "r");
+    out_fp = fopen(fastq_index_out, "w+"); 
+ 
+    char seq_id[ID_LEN + 1];
+    off_t entry_pos = 0;
 
-            
+    //Skip first 14 bits of all ids
+    fseek(in_fp, 14, SEEK_CUR);
 
+    while(!feof(in_fp) && (fread(seq_id, ID_LEN, 1, in_fp) == 1)){
+        seq_id[ID_LEN] = '\0';
+    
+        //Multiple writing 
+        fprintf(out_fp,"%s\t%lld\n", seq_id, entry_pos);
 
+        //Adjust file pointer to next entry
+        //Already ID_LEN bytes intro current entry
+        fseek(in_fp, ENTRY_BYTES - ID_LEN, SEEK_CUR);
+        entry_pos += ENTRY_BYTES;
+    }
 
-
-
-
-
-
-
+    fclose(in_fp);
+    fclose(out_fp);
 }
-
-
 
