@@ -8,9 +8,9 @@
 #include <stdlib.h>
 
 #define ENTRY_NO_READID_BYTES 204 //101('seq\n') + 2 ('+\n') + 101('qual\n')
-#define ID_LEN 27
 #define _FILE_OFFSET_BITS 64
 #define ID_BUFFER_SIZE 100
+#define TRUNC_HEAD_SIZE 14
 
 int get_id_len(char *seq_id, int buff_size){
     int i;
@@ -23,6 +23,24 @@ int get_id_len(char *seq_id, int buff_size){
     return -1;
 }
 
+
+void truncate_seq_id(char **seq_id, int buff_size){
+    /* Removes unnecessary info from tail and head of the id string*/
+
+    //Remove head of id 
+    *seq_id += TRUNC_HEAD_SIZE;
+
+    //Remove tail end of id
+    int i;
+    for(i = 0; i < buff_size; i++){
+        if ((*seq_id)[i] == ' '){
+            (*seq_id)[i] = '\0';
+            return;
+        }
+    } 
+}
+
+
 int main(int argc, char **argv){
     char *fastq_in = argv[1];
     char *fastq_index_out = argv[2];
@@ -31,11 +49,9 @@ int main(int argc, char **argv){
     in_fp = fopen(fastq_in, "r");
     out_fp = fopen(fastq_index_out, "w+"); 
 
-    char seq_id[ID_BUFFER_SIZE];
+    char *seq_id = (char *)malloc(100*sizeof(char));
     off_t entry_pos = 0;
 
-    //Skip first 14 bits of all ids
-    //fseek(in_fp, 14, SEEK_CUR);
     int id_bytes = 0;
     int entry_bytes = 0;
 
@@ -57,11 +73,15 @@ int main(int argc, char **argv){
         //Get total length of entry
         entry_bytes = id_bytes + ENTRY_NO_READID_BYTES;
 
+        //Truncate seq_id to reduce file size & later memory usage when loaded into dict
+        truncate_seq_id(&seq_id, ID_BUFFER_SIZE);
+
         //WRITE out read id and byte offset to out_fp
         fprintf(out_fp,"%s\t%lld\n", seq_id, entry_pos);
 
         //in_fp currently past read id line in current entry, move in_fp to next entry
         fseek(in_fp, entry_bytes - id_bytes, SEEK_CUR);
+
         // Adjust entry_pos for next entry
         entry_pos += entry_bytes;
 
