@@ -1,3 +1,9 @@
+"""
+Usage:
+    python get_read_ids.py <sites file from get_rand_sites.py> <out_file>
+
+
+"""
 import sys
 import glob
 from subprocess import call
@@ -42,16 +48,26 @@ def get_mut_strings(reads, base_pos, mutant_base):
     muts_str = [] 
 
     for read in reads:
-        mut_str = read.read_id + "\t" + str(read.get_base_idx(base_pos)) + "\t" + \
+        mut_str = read.read_id + "\t" + str(read.direction) + "\t" + str(read.get_base_idx(base_pos)) + "\t" + \
              str(read.get_base_at_pos(base_pos)) + "\t" + mutant_base
         muts_str.append(mut_str)
 
     return muts_str
 
+
+def get_reads(samtools_comm, direction):
+    """
+    """
+    read_strs = check_output(samtools_comm, shell=True).split('\n')
+    read_strs.remove("")
+    reads = [read(y) for y in read_strs]
+    [t_read.set_direction(direction) for t_read in reads]
+    return reads 
+
     
 if __name__ == "__main__":
     """
-    Sample\tChrom\tbase_pos\n --> Sample\tChrom\tbase_pos\tRead_id\tbase_idx\told_base\tnew_base\n 
+    Sample\tChrom\tbase_pos\n --> Sample\tChrom\tbase_pos\tRead_id\tRead_dir(1 or 2)\tbase_idx\told_base\tnew_base\n 
 
     For every site in file_in_loc, picks a random number of randomly chosen reads to mutate and writes their info to out_file.
 
@@ -63,26 +79,24 @@ if __name__ == "__main__":
 
     with open(file_in_loc) as f:
         for line in f:
+            print line
             #Sample\tChrom\tPOS\n
             sline = line.split()
             sample = sline[0]
             chrom = sline[1]
-            pos = sline[2]
+            pos = int(sline[2])
 
-            #Get .bam path
-            glob_str = glob.glob("/data/maggie.bartkowska/spirodela_ma/all_bam/realigned/*" + sample + "*.bam")[0]
+            #Get .bam path from sample name
+            bam_path = glob.glob("/data/maggie.bartkowska/spirodela_ma/all_bam/realigned/*" + sample + "*.bam")[0]
 
             #samtools comm for getting reads at this site
-            samtools_comm = "samtools view " + glob_str + " " + \
-                chrom + ":" + pos + "-" + pos
+            samtools_comm_fwd_reads = "samtools view " + bam_path + " " + \
+                chrom + ":" + str(pos) + "-" + str(pos) + " -F 16"
+            samtools_comm_rev_reads = "samtools view " + bam_path + " " + \
+                chrom + ":" + str(pos) + "-" + str(pos) + " -f 16"
 
-            #Get reads covering specified site using samtools view
-            read_strs = check_output(samtools_comm, shell=True).split('\n')
-            #Remove null string "" from after final'\n'
-            read_strs.remove("")
-
-            #Convert to sam lines to read objects
-            reads = [read(y) for y in read_strs]
+            reads = get_reads(samtools_comm_fwd_reads, direction = 1) \
+                + get_reads(samtools_comm_rev_reads, direction = 2)
 
             bad_reads = []
             for t_read in reads:
@@ -90,13 +104,17 @@ if __name__ == "__main__":
                     reads.remove(t_read)
                     bad_reads.append(t_read) 
 
-            print "Site: ", line
-            print "# bad reads:", len(bad_reads)
+            sys.stderr.write(line + "\n")
+            for bad_read in bad_reads:
+                sys.stderr.write(bad_read.raw_str + "\n")
+                contains = str(bad_read in reads)
+                sys.stderr.write(contains)
+                
             
             #Randomly choose reads to mutate. Number to mutate chosen from binomial dist.
             reads_to_mutate = get_reads_to_mut(reads)
-            print "# reads mutating:", len(reads_to_mutate) 
-            #print len(reads_to_mutate)
+            print "Num reads to mutate", len(reads_to_mutate)
+
             #Pick random new base
             bases = ["A","T","C","G"]
             mutant_base = bases[randint(0, len(bases) - 1)]
