@@ -12,7 +12,7 @@ from read import read
 import numpy as np
 from random import randint
 
-def get_reads_to_mut(reads):
+def get_reads_to_mut(read_list):
     """Randomly chooses x unique reads to mutate, 
         where x is chosen from the binomial dist.
 
@@ -23,12 +23,12 @@ def get_reads_to_mut(reads):
         mut_reads: Random subset of reads of random size.
     """
     #Get number of reads to mutate
-    num_reads = np.random.binomial(len(reads),p=0.5) 
+    num_reads = np.random.binomial(len(read_list),p=0.5) 
 
     #Get num_reads random reads
     mut_reads = set() #Want num_read unique reads
     while len(mut_reads) < num_reads:
-        mut_reads.add(reads[randint(0,len(reads) - 1)])
+        mut_reads.add(read_list[randint(0,len(read_list) - 1)])
 
     return list(mut_reads)
 
@@ -46,7 +46,6 @@ def get_mut_strings(reads, base_pos, mutant_base):
         mut_str format: read_id\tbase_idx(relative to read)\told_bp\tnew_bp
     """
     muts_str = [] 
-
     for read in reads:
         mut_str = read.read_id + "\t" + str(read.direction) + "\t" + str(read.get_base_idx(base_pos)) + "\t" + \
              str(read.get_base_at_pos(base_pos)) + "\t" + mutant_base
@@ -62,6 +61,7 @@ def get_reads(samtools_comm, direction):
     read_strs.remove("")
     reads = [read(y) for y in read_strs]
     [t_read.set_direction(direction) for t_read in reads]
+
     return reads 
 
     
@@ -98,23 +98,14 @@ if __name__ == "__main__":
             reads = get_reads(samtools_comm_fwd_reads, direction = 1) \
                 + get_reads(samtools_comm_rev_reads, direction = 2)
 
-            bad_reads = []
+            good_reads = []
             for t_read in reads:
-                if not t_read.read_maps_pos(pos):
-                    reads.remove(t_read)
-                    bad_reads.append(t_read) 
+                if t_read.read_maps_pos(pos):
+                    good_reads.append(t_read)
 
-            sys.stderr.write(line + "\n")
-            for bad_read in bad_reads:
-                sys.stderr.write(bad_read.raw_str + "\n")
-                contains = str(bad_read in reads)
-                sys.stderr.write(contains)
-                
-            
             #Randomly choose reads to mutate. Number to mutate chosen from binomial dist.
-            reads_to_mutate = get_reads_to_mut(reads)
-            print "Num reads to mutate", len(reads_to_mutate)
-
+            reads_to_mutate = get_reads_to_mut(good_reads)
+            
             #Pick random new base
             bases = ["A","T","C","G"]
             mutant_base = bases[randint(0, len(bases) - 1)]

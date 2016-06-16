@@ -44,8 +44,8 @@ class read():
         return (int(pos) - self.read_start) - 1
 
     def read_maps_pos(self, pos):
-        print "read maps", self.read_start, pos, self.range_end, \
-            type(self.read_start), type(pos), type(self.range_end)
+#        print "read maps", self.read_start, pos, self.range_end
+#        print self.raw_str
         return ((self.read_start <= int(pos)) and (int(pos) <= self.range_end))
 
  
