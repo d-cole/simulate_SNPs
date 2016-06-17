@@ -1,3 +1,8 @@
+"""
+Usage:
+    python get_rand_sites.py <num_sites> <out_file>
+
+"""
 import sys
 from random import randint
 
@@ -14,6 +19,7 @@ if __name__ == "__main__":
         "GP2-3_E","GP2-3_F","GP2-3_G","GP2-3_H","GP2-3_I","GP2-3_J","GP2-3_K",\
         "GP2-3_L","GP2-3_M","GP2-3_N","GP2-3_O","GP2-3_P"]
 
+    #Load chromosome sizes
     with open("altered_pseudo_plastids.fai", "r") as f:
         for line in f:
             sline = line.split("\t")
@@ -27,12 +33,15 @@ if __name__ == "__main__":
     #Write out random sample, chrom and pos to out_file
     out_file = open(out_file_loc,"w")
     chroms = chrom_sizes.keys()
+
     for i in range(0, num_random):
         rand_sample = samples[randint(0,len(samples) - 1)] 
         rand_chrom = chroms[randint(0,len(chroms) - 1)]
         rand_pos = randint(0,chrom_sizes[rand_chrom])
+
         out_str = rand_sample + '\t' + rand_chrom + '\t' + str(rand_pos) + '\n'
         out_file.write(out_str)
+
 
     out_file.close()
 

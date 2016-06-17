@@ -31,7 +31,7 @@ class read():
                 "MQ: ", self.MAPQ
     
 #        self.base_range = range(int(self.read_start), int(self.read_start) + len(self.template_len))
-        self.range_end = self.read_start + len(self.seq)
+        self.range_end = self.read_start + (len(self.seq) - 1)
 
     def set_direction(self, direction):
         """
@@ -40,8 +40,15 @@ class read():
 
     def get_base_idx(self, pos):
         """
+
         """    
-        return (int(pos) - self.read_start) - 1
+        idx = int(pos) - self.read_start
+
+        # Reverse strand
+        if idx < 0:
+            idx = len(self.seq) + idx
+
+        return idx
 
     def read_maps_pos(self, pos):
 #        print "read maps", self.read_start, pos, self.range_end

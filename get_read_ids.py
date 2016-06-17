@@ -47,7 +47,7 @@ def get_mut_strings(reads, base_pos, mutant_base):
     """
     muts_str = [] 
     for read in reads:
-        mut_str = read.read_id + "\t" + str(read.direction) + "\t" + str(read.get_base_idx(base_pos)) + "\t" + \
+        mut_str = read.read_id[13:] + "\t" + str(read.direction) + "\t" + str(read.get_base_idx(base_pos)) + "\t" + \
              str(read.get_base_at_pos(base_pos)) + "\t" + mutant_base
         muts_str.append(mut_str)
 
