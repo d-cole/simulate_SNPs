@@ -24,7 +24,7 @@ class read():
         self.template_len = sline[8]
         self.seq = sline[9]
         self.base_qual = sline[10]
-        self.direction = None
+        self.rev_comp = None
 
         if len(self.seq) != 100:
             print "Seq len:", len(self.seq), "\n", "Temp len:", self.template_len, \
@@ -33,29 +33,48 @@ class read():
 #        self.base_range = range(int(self.read_start), int(self.read_start) + len(self.template_len))
         self.range_end = self.read_start + (len(self.seq) - 1)
 
-    def set_direction(self, direction):
+    def set_rev_comp(self, rev_comp):
         """
         """
-        self.direction = direction
+        self.rev_comp = rev_comp 
+        if self.rev_comp:
+            self.seq = self.get_rev_comp()
+
+    def get_rev_comp(self):
+        """
+        """
+        base_comp = {"A":"T", "C":"G", "G":"C", "T":"A", "a":"t", "t":"a",\
+         "g":"c", "c":"g", "N":"N","n":"n"}
+        rev_seq = ""
+
+        for base in self.seq[::-1]:
+            rev_seq = rev_seq + base_comp[base]
+
+        return rev_seq
+        
 
     def get_base_idx(self, pos):
-        """
-
+        """Returns the index of the base in this reads sequence string.
+    
+        Args:
+            pos: reference relative index
+        Returns:
+            idx: Int index of pos in read
         """    
         idx = int(pos) - self.read_start
-
-        # Reverse strand
-        if idx < 0:
-            idx = len(self.seq) + idx
+        
+        if self.rev_comp:
+            idx = (len(self.seq) - idx) - 1
 
         return idx
+
 
     def read_maps_pos(self, pos):
 #        print "read maps", self.read_start, pos, self.range_end
 #        print self.raw_str
         return ((self.read_start <= int(pos)) and (int(pos) <= self.range_end))
 
- 
+    
     def get_base_at_pos(self, pos):
         """Gets base pair at given position.
 
@@ -72,10 +91,10 @@ class read():
             sys.stderr.write("Err\n")
             sys.stderr.write(self.raw_str  +"\n")
             sys.stderr.write(str(self.read_start) + " " + str(pos) + " " + str(self.range_end) + "\n")
-
             raise ValueError("Read does not cover specified position")
 
         base_idx = self.get_base_idx(pos)
+
         try:
             base = self.seq[base_idx]
         except:
@@ -85,6 +104,7 @@ class read():
             print self.raw_str
             print base_idx
             print len(self.seq)
+
 
         return self.seq[base_idx]
 

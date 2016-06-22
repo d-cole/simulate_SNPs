@@ -2,7 +2,6 @@
 Usage:
     python get_read_ids.py <sites file from get_rand_sites.py> <out_file>
 
-
 """
 import sys
 import glob
@@ -43,31 +42,42 @@ def get_mut_strings(reads, base_pos, mutant_base):
 
     Returns:
         muts_str: List of strings of appropriate mutant info
-        mut_str format: read_id\tbase_idx(relative to read)\told_bp\tnew_bp
     """
+    base_comp = {"A":"T", "C":"G", "G":"C", "T":"A", "a":"t", "t":"a", "g":"c", "c":"g"}
+
     muts_str = [] 
     for read in reads:
-        mut_str = read.read_id[13:] + "\t" + str(read.direction) + "\t" + str(read.get_base_idx(base_pos)) + "\t" + \
-             str(read.get_base_at_pos(base_pos)) + "\t" + mutant_base
+        curr_mutant_base = mutant_base
+
+        if read.rev_comp:
+            curr_mutant_base = base_comp[mutant_base]
+
+        mut_str = read.read_id[13:] + "\t" + str(read.rev_comp) + "\t" + str(read.get_base_idx(base_pos)) + "\t" + \
+            str(read.get_base_at_pos(base_pos)) + "\t" + curr_mutant_base + "\t" + read.seq
+
         muts_str.append(mut_str)
 
     return muts_str
 
 
-def get_reads(samtools_comm, direction):
+def get_reads(samtools_comm, rev_comp):
     """
     """
     read_strs = check_output(samtools_comm, shell=True).split('\n')
     read_strs.remove("")
     reads = [read(y) for y in read_strs]
-    [t_read.set_direction(direction) for t_read in reads]
+    [t_read.set_rev_comp(rev_comp) for t_read in reads]
 
     return reads 
 
     
 if __name__ == "__main__":
     """
-    Sample\tChrom\tbase_pos\n --> Sample\tChrom\tbase_pos\tRead_id\tRead_dir(1 or 2)\tbase_idx\told_base\tnew_base\n 
+    Sample\tChrom\tbase_pos\n -->
+    Sample\tChrom\tbase_pos\tRead_id\treverse complement? (0 or 1)\tbase_idx
+    \told_base (if reverse complement this base will be the complement of reference base)
+    \tnew_base(if rev comp this base will be the complement of other reads in this sample)
+    \tsequence string\n
 
     For every site in file_in_loc, picks a random number of randomly chosen reads to mutate and writes their info to out_file.
 
@@ -79,7 +89,7 @@ if __name__ == "__main__":
 
     with open(file_in_loc) as f:
         for line in f:
-            print line
+            #print line
             #Sample\tChrom\tPOS\n
             sline = line.split()
             sample = sline[0]
@@ -90,13 +100,14 @@ if __name__ == "__main__":
             bam_path = glob.glob("/data/maggie.bartkowska/spirodela_ma/all_bam/realigned/*" + sample + "*.bam")[0]
 
             #samtools comm for getting reads at this site
-            samtools_comm_fwd_reads = "samtools view " + bam_path + " " + \
+            samtools_comm_fwd = "samtools view " + bam_path + " " + \
                 chrom + ":" + str(pos) + "-" + str(pos) + " -F 16"
-            samtools_comm_rev_reads = "samtools view " + bam_path + " " + \
+
+            samtools_comm_rev_comp = "samtools view " + bam_path + " " + \
                 chrom + ":" + str(pos) + "-" + str(pos) + " -f 16"
 
-            reads = get_reads(samtools_comm_fwd_reads, direction = 1) \
-                + get_reads(samtools_comm_rev_reads, direction = 2)
+            reads = get_reads(samtools_comm_fwd, rev_comp = 0) \
+                + get_reads(samtools_comm_rev_comp, rev_comp = 1)
 
             good_reads = []
             for t_read in reads:
